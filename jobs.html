@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Stellenanzeigen – Flowd GmbH</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --primary: #007acc;
+      --primary-dark: #005b99;
+      --accent: #00c6ae;
+      --bg: #f5f6fa;
+      --card-bg: #fff;
+      --border: #e0e3e8;
+      --font: 'Inter', 'Segoe UI', Arial, sans-serif;
+      --transition: 0.18s cubic-bezier(.4, 0, .2, 1);
+      --max-width: 1000px;
+      --stack-space: 0; /* Kein Abstand zwischen den Karten */
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: #1a1a1a;
+    }
+
+    .stack-section {
+      background: var(--card-bg);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      padding: 3.5rem 0;
+      border: 1.5px solid var(--border);
+      border-radius: 0;
+      width: 100%;
+      position: relative;
+      margin: 0 auto 0 auto; /* Kein Abstand unten */
+    }
+
+    .stack-section.stack-depth-1 {
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.10);
+      z-index: 3;
+    }
+
+    .stack-section.stack-depth-2 {
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.13);
+      z-index: 2;
+    }
+
+    .stack-section.stack-depth-3 {
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.16);
+      z-index: 1;
+    }
+
+    .stack-section + .stack-section {
+      margin-top: -1.5rem; /* Überlappung für Stapel-Effekt */
+    }
+
+    .stack-section:first-child {
+      margin-top: 0;
+      background: linear-gradient(90deg, #f5f6fa 60%, #eaf6ff 100%);
+      border: none;
+      box-shadow: none;
+    }
+
+    .stack-section:last-child {
+      /* Kein zusätzlicher Abstand unten */
+    }
+
+    .stack-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 2.2rem;
+    }
+
+    header {
+      text-align: center;
+      padding: 0 1rem;
+      background: none;
+      border: none;
+      box-shadow: none;
+    }
+
+    header img, .logo {
+      height: 54px;
+      margin-bottom: 1.2rem;
+      filter: drop-shadow(0 2px 8px rgba(0, 122, 204, 0.08));
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: -1px;
+      font-weight: 700;
+    }
+
+    h3 {
+      font-size: 1.4rem;
+      margin: 0;
+      padding: 0;
+    }
+
+    header p {
+      margin: 0.5rem 0;
+      font-size: 1.13rem;
+    }
+
+    .job-nav {
+      display: flex;
+      gap: 1.2rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 0;
+      padding: 0;
+    }
+
+    .job-nav a {
+      background: #fff;
+      color: var(--primary);
+      padding: 0.7rem 1.7rem;
+      border-radius: 0;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.08rem;
+      border: 1.5px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: border var(--transition), color var(--transition), background var(--transition), box-shadow var(--transition), transform var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      outline: none;
+    }
+
+    .job-nav a:hover, .job-nav a:focus {
+      border: 1.5px solid var(--primary);
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(0, 122, 204, 0.13);
+      transform: translateY(-2px) scale(1.04);
+    }
+
+    .stack-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+    }
+
+    .job-section {
+    / / keine border-radius, keine extra border, Schatten wie Stack
+    }
+
+    .job-headline {
+      margin: 0;
+      padding: 1.6rem 0 1.2rem 0;
+      color: var(--primary-dark);
+      font-size: 1.35rem;
+      background: none;
+      border-bottom: 1px solid var(--border);
+      user-select: none;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 0.7em;
+      max-width: var(--max-width);
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .job-content {
+      padding: 1.3rem 0 2.2rem 0;
+      font-size: 1.09rem;
+      background: none;
+      max-width: var(--max-width);
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    ul {
+      margin-left: 1.5rem;
+      margin-bottom: 0.7rem;
+      padding-left: 0.7rem;
+    }
+
+    blockquote {
+      background: linear-gradient(90deg, #eaf6ff 0%, #f5f6fa 100%);
+      border-left: 4px solid var(--primary);
+      padding: 1.1rem 1.5rem;
+      margin: 2rem 0;
+      font-style: italic;
+      border-radius: 0 14px 14px 0;
+      color: #2a2a2a;
+    }
+
+    .cta {
+      margin-top: 2rem;
+      background: linear-gradient(
+        110deg,
+        var(--primary) 60%,
+        var(--accent) 100%
+      );
+      color: white;
+      padding: 1.1rem;
+      border-radius: 0;
+      text-align: center;
+      font-size: 1.12rem;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      box-shadow: 0 2px 12px rgba(0, 122, 204, 0.08);
+      position: relative;
+      overflow: hidden;
+      /* Animation */
+      background-size: 200% 100%;
+      animation: cta-wave 3.5s cubic-bezier(.4, 0, .2, 1) infinite alternate;
+    }
+
+    @keyframes cta-wave {
+      0% {
+        background-position: 0% 50%;
+      }
+      100% {
+        background-position: 100% 50%;
+      }
+    }
+
+    .cta a {
+      color: white;
+      text-decoration: underline dotted var(--border);
+      font-weight: 500;
+    }
+
+    .cta a:hover, .cta a:focus {
+      text-decoration: underline solid var(--primary-dark);
+    }
+
+    .cta p {
+      margin: 0.5em 0;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 1rem;
+      color: #888;
+      letter-spacing: 0.1px;
+      background: none;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+    }
+
+    .flex-center {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    @media (max-width: 900px) {
+      .stack-inner {
+        max-width: 98vw;
+        padding: 0 0.5rem;
+      }
+    }
+
+    @media (max-width: 700px) {
+      :root {
+        --stack-space: 1.2rem;
+      }
+
+      .stack-section {
+        padding: 1.5rem 0;
+      }
+
+      .stack-inner {
+        padding: 0 0.2rem;
+      }
+
+      .job-headline {
+        font-size: 1.08rem;
+        padding: 1.1rem;
+      }
+
+      .job-content {
+        padding: 0.8rem 1rem 1.1rem 1rem;
+      }
+    }
+
+    .portal-icon {
+      width: 1.2em;
+      height: 1.2em;
+      fill: currentColor;
+      vertical-align: middle;
+    }
+
+    .portal-link {
+      color: inherit;
+    }
+
+    .portal-link:hover, .portal-link:focus {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+<div class="stack-section">
+  <div class="stack-inner">
+    <header>
+      <svg class="logo" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" fill-rule="evenodd"
+           stroke-linejoin="round" stroke-miterlimit="2" clip-rule="evenodd" viewBox="0 0 2578.019 902.221"><path fill="#6d9dd2" fill-rule="nonzero" d="M0 902.221V0h163.054v72.25h-72.25v759.667h72.25v70.304zm476.871-769.754V195.4c-15.846-.883-31.1-1.32-45.77-1.32-18.192 0-29.192.878-33.01 2.637-6.453 3.229-10.12 13.058-11 29.487-.295 6.163-.44 14.525-.44 25.088 0 4.4.074 13.275.22 26.625.146 13.35.22 24.716.22 34.104h87.138v49.733h-87.137v433.05h-86.7v-433.05h-56.771v-49.733h56.77c0-16.133.076-29.263.222-39.388.145-10.12.512-21.341 1.1-33.666.587-12.321 1.32-22.15 2.2-29.484.883-7.337 2.275-15.258 4.183-23.766 1.904-8.509 4.108-15.184 6.6-20.025 2.496-4.842 5.65-9.9 9.463-15.184 3.812-5.279 8.141-9.241 12.983-11.883 4.842-2.638 10.487-5.133 16.942-7.48 6.454-2.35 13.57-3.962 21.345-4.841 7.775-.88 16.65-1.32 26.625-1.32 23.767 0 48.705 2.495 74.817 7.483zm197.187 662.338h-86.695v-653.98l86.696-7.038v661.018zm303.818-54.13c41.662-.879 70.633-3.962 86.916-9.245 16.284-5.28 24.425-15.696 24.425-31.246 3.23-41.955 4.842-90.513 4.842-145.671 0-18.192-.733-44.23-2.2-78.117-1.467-33.888-2.2-59.046-2.2-75.475 0-4.988-.808-9.533-2.42-13.642-1.613-4.108-4.255-7.554-7.922-10.341-3.666-2.788-7.333-5.209-11.004-7.263-3.666-2.054-8.8-3.667-15.4-4.842-6.604-1.175-12.179-2.2-16.725-3.079-4.546-.883-11.004-1.466-19.362-1.762-8.363-.292-14.817-.438-19.367-.438h-40.046c-4.55 0-11.004.146-19.367.438-8.362.296-14.816.879-19.362 1.762-4.55.88-10.12 1.904-16.725 3.08-6.6 1.174-11.733 2.787-15.404 4.841-3.667 2.054-7.334 4.475-11 7.263-3.667 2.787-6.309 6.233-7.921 10.341-1.617 4.109-2.42 8.654-2.42 13.642 0 16.43-.734 41.587-2.2 75.475-1.468 33.888-2.2 59.925-2.2 78.117 0 55.158 1.612 103.716 4.837 145.67 0 15.55 8.583 26.188 25.745 31.909 17.167 5.725 45.992 8.583 86.48 8.583zm-.88 60.73c-32.566 0-59.708-1.321-81.416-3.959-21.713-2.641-40.417-8.437-56.113-17.387-15.696-8.946-27.654-18.484-35.866-28.604-8.217-10.117-14.671-26.113-19.367-47.971-4.696-21.859-7.554-43.496-8.58-64.913-1.028-21.417-1.541-51.196-1.541-89.337 0-28.463.363-52.225 1.096-71.296.737-19.071 2.425-37.775 5.067-56.113 2.637-18.337 5.941-33.154 9.9-44.45 3.962-11.296 9.683-22.004 17.162-32.125 7.483-10.12 15.92-17.825 25.308-23.104 9.388-5.283 21.342-9.904 35.867-13.863 14.52-3.962 30.367-6.604 47.53-7.925 17.162-1.316 37.629-1.979 61.391-1.979 23.767 0 44.23.663 61.396 1.98 17.162 1.32 33.004 3.962 47.53 7.924 14.52 3.959 26.478 8.58 35.866 13.863 9.387 5.279 17.825 12.983 25.304 23.104 7.483 10.12 13.204 20.83 17.167 32.125 3.958 11.296 7.258 26.113 9.9 44.45 2.641 18.338 4.329 37.042 5.062 56.113.734 19.07 1.1 42.833 1.1 71.296 0 38.141-.512 67.92-1.541 89.337-1.025 21.417-3.888 43.054-8.584 64.913-4.691 21.858-11.22 37.92-19.583 48.191-8.363 10.267-20.392 19.805-36.088 28.605-15.696 8.804-34.4 14.525-56.112 17.166-21.709 2.638-48.996 3.959-81.854 3.959zm1243.197-114.863V429.967c0-25.525-7.92-43.054-23.762-52.592-15.846-9.533-45.625-14.3-89.338-14.3-34.033 0-59.266 2.492-75.696 7.48-13.495 4.108-22.591 16.212-27.287 36.308-4.696 20.095-7.042 47.162-7.042 81.195 0 49.584.88 118.971 2.642 208.163 1.467 19.367 9.312 32.35 23.546 38.95 14.229 6.6 42.175 9.904 83.837 9.904 41.075 0 69.754-4.108 86.038-12.32 16.283-8.221 25.304-23.621 27.062-46.213zm86.7 112.22h-79.216l-8.363-60.728c-17.896 44.887-64.692 67.333-140.387 67.333-20.246 0-38.363-1.32-54.355-3.962-15.987-2.642-29.779-7.188-41.366-13.642-11.588-6.454-21.492-13.13-29.705-20.025-8.216-6.896-15.037-16.871-20.466-29.921-5.43-13.062-9.684-24.946-12.763-35.654-3.079-10.709-5.354-25.596-6.82-44.667-1.467-19.07-2.346-35.72-2.642-49.95-.292-14.23-.438-33.52-.438-57.875 0-23.762.367-44.3 1.1-61.613a599.44 599.44 0 0 1 4.4-51.491c2.2-17.017 5.134-31.317 8.8-42.909 3.667-11.587 8.584-22.808 14.746-33.666 6.158-10.854 13.567-19.584 22.225-26.184 8.654-6.604 18.996-12.47 31.025-17.604 12.03-5.133 25.817-8.729 41.367-10.783 15.55-2.054 33.154-3.08 52.812-3.08 37.846 0 67.263 5.059 88.238 15.184 20.98 10.12 36.017 26.183 45.108 48.188V130.267l86.7-7.042v675.538zm108.071 103.459v-70.304h72.25V72.25h-72.25V0h163.055v902.221zm-700.592-405.525h87.58l44.012-197.867h-87.575zm-371.071-197.867h-87.58L1366.047 794.8h87.58l-110.326-495.97zm229.325 0h-87.58L1595.372 794.8h87.58l-110.326-495.97z"/></svg>
+      <h1>Wir suchen dich!</h1>
+      <p style="margin:1.2rem 0 1.5rem 0;font-size:1.08rem;">
+        <strong>Wir sind Flowd</strong>, ein technischer Dienstleister mit Fokus auf <strong>qualitative
+        Softwareentwicklung</strong>.<br>
+        Wir stehen für saubere, nachhaltige und hochwertige Lösungen – kein Bla-Bla, sondern technische
+        Begeisterung.<br>
+        <br>
+      <p style="color:#6c6c6c; font-style: italic">
+        Übrigens: Wie du vielleicht siehst sind wir keine Designer – und das wollen wir auch gar nicht sein.<br>
+        Wir konzentrieren uns auf das, was wir richtig gut können: Technik und Softwareentwicklung.<br>
+        Für alles andere haben unsere Kunden ihre eigenen Spezialist:innen. So kann sich jeder auf das konzentrieren,
+        was er oder sie am besten kann – und das macht am meisten Spaß!
+      </p>
+      <br>
+      <strong>Wir eröffnen ein neues Büro in Butzbach</strong> und suchen Menschen, die Lust haben, diesen Weg
+      mitzugestalten.<br>
+      <br>
+      Bei uns erwartet dich eine lockere, offene Arbeitsweise, flexible Arbeitszeiten, Homeoffice-/Remote-Möglichkeiten,
+      moderne Hardware, Weiterbildung, Kaffee, Snacks und das Wichtigste: ein wertschätzendes Miteinander.<br>
+      <br>
+      <strong>Du bist dir noch nicht sicher? Du hast Fragen oder besondere Wünsche? <br> Dann lass uns reden!</strong>
+      </p>
+    </header>
+  </div>
+</div>
+
+<div class="stack-section stack-depth-1">
+  <div class="stack-inner">
+    <nav class="job-nav">
+      <a href="#job-typo3">
+        <svg style="height: 1em;" viewBox="-2 0 260 260" version="1.1" xmlns="http://www.w3.org/2000/svg"
+             xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid" fill="#000000">
+          <g stroke-width="0"></g>
+          <g stroke-linecap="round" stroke-linejoin="round"></g>
+          <g>
+            <g>
+              <path
+                d="M109.525333,4.05333333 C104.810667,8.08533333 101.461333,12.8 101.461333,26.88 C101.461333,65.1946667 149.824,180.288 182.762667,180.288 C186.462268,180.338187 190.147176,179.812799 193.685333,178.730667 L193.616,178.75 L192.774258,180.100166 C164.346546,225.411559 130.133077,258.650903 109.429541,259.317782 L108.8,259.328 C63.8293333,259.328 0,123.562667 0,63.8293333 C0,54.4213333 2.13333333,47.04 5.376,42.4533333 C20.8426667,23.552 69.2053333,8.74666667 109.525333,4.05333333 Z M172.672,0 C214.314667,0 256,6.72 256,30.2293333 C256,77.9306667 225.749333,135.744 210.304,135.744 C182.762667,135.744 148.437333,59.136 148.437333,20.8213333 C148.437333,3.34933333 155.136,0 172.608,0 L172.672,0 Z"
+                fill="#F49700"></path>
+            </g>
+          </g>
+        </svg>
+        TYPO3 Entwickler:in</a>
+      <a href="#job-php">💻 PHP Fullstack Entwickler:in</a>
+      <a href="#job-rails">💎 Ruby on Rails Entwickler:in</a>
+      <a href="#job-pm">🗂️ Projektmanager:in</a>
+    </nav>
+  </div>
+</div>
+
+<article class="stack-section stack-depth-2">
+  <div class="stack-inner job-section" id="job-typo3">
+    <h2 class="job-headline">
+            <span style="display:inline-flex;align-items:center;height:1.7em;">
+                <svg style="height: 1em;" viewBox="-2 0 260 260" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                     xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid" fill="#000000"><g
+                  stroke-width="0"></g><g stroke-linecap="round" stroke-linejoin="round"></g><g> <g> <path
+                  d="M109.525333,4.05333333 C104.810667,8.08533333 101.461333,12.8 101.461333,26.88 C101.461333,65.1946667 149.824,180.288 182.762667,180.288 C186.462268,180.338187 190.147176,179.812799 193.685333,178.730667 L193.616,178.75 L192.774258,180.100166 C164.346546,225.411559 130.133077,258.650903 109.429541,259.317782 L108.8,259.328 C63.8293333,259.328 0,123.562667 0,63.8293333 C0,54.4213333 2.13333333,47.04 5.376,42.4533333 C20.8426667,23.552 69.2053333,8.74666667 109.525333,4.05333333 Z M172.672,0 C214.314667,0 256,6.72 256,30.2293333 C256,77.9306667 225.749333,135.744 210.304,135.744 C182.762667,135.744 148.437333,59.136 148.437333,20.8213333 C148.437333,3.34933333 155.136,0 172.608,0 L172.672,0 Z"
+                  fill="#F49700"> </path> </g> </g></svg>
+            </span>
+      TYPO3 Entwickler:in (m/w/d)
+    </h2>
+    <div class="job-content">
+      <p><strong>Flowd GmbH</strong> steht für digitale Lösungen mit Substanz – durchdacht, strukturiert, qualitativ
+        hochwertig. TYPO3 ist ein zentraler Bestandteil unseres Technologie-Stacks.</p>
+      <p>Du arbeitest gern fokussiert, entwickelst sauberen Code und möchtest anspruchsvolle Projekte voranbringen? Dann
+        bist du bei uns richtig – ob TYPO3-Profi oder motivierte:r Entwickler:in mit dem Wunsch, es zu werden.</p>
+      <h3>Was uns ausmacht:</h3>
+      <ul>
+        <li>🚫 Keine Agentur – technischer Dienstleister mit Qualitätsanspruch</li>
+        <li>🔍 Nachhaltige, saubere Softwareentwicklung statt Schnellschüsse</li>
+        <li>🤝 Langfristige Partnerschaften & technische Exzellenz</li>
+        <li>🧪 Automatisierte Deployments, Unit Tests, Acceptance Tests, Visual Regression Tests, automatisierter
+          Codestyle und statisches Code Linting sind für uns selbstverständlich
+        </li>
+        <li>🎉 Flexible Arbeitszeiten, Homeoffice-/Remote, moderne Hardware, Weiterbildung, Kaffee, Snacks und mehr</li>
+      </ul>
+      <h3>Deine Aufgaben:</h3>
+      <ul>
+        <li>⚙️ Technische Umsetzung und Betreuung von TYPO3-Projekten (v13+)</li>
+        <li>🧑‍💻 Entwicklung neuer Funktionalitäten mit den neusten Technologien</li>
+        <li>🎨 Enge Zusammenarbeit mit unseren Kunden</li>
+        <li>✅ Qualitätsorientierte Entwicklung mit Fokus auf Nachhaltigkeit - wir schreiben Code für die Zukunft und
+          nicht für Anforderungen, die morgen schon veraltet sind.
+        </li>
+      </ul>
+      <h3>Was du mitbringen solltest:</h3>
+      <ul>
+        <li>💡 Erfahrung mit TYPO3 ODER sehr gute PHP-Kenntnisse und Lernbereitschaft</li>
+        <li>📚 Kenntnisse in Fluid, Extbase und TypoScript (optional)</li>
+        <li>🗂️ Selbstständige, strukturierte Arbeitsweise</li>
+        <li>🚀 Technische Neugier, Teamgeist und Qualitätsbewusstsein</li>
+      </ul>
+      <blockquote>
+        Du kannst noch nicht alles davon? Kein Problem!<br>
+        Wenn du bereit bist zu lernen, nehmen wir dich an die Hand.<br>
+        Bei uns bekommst du die Zeit und Unterstützung, um dich zu entwickeln. <strong>Trau dich!</strong>
+      </blockquote>
+      <div class="cta">
+        <h3>Jetzt bewerben:</h3>
+        <p>
+          📧 <a
+          href="mailto:hello@flowd.de?subject=Bewerbung%20-%20TYPO3%20Entwickler%3Ain&body=Hallo%20Sascha%2C%20ich%20h%C3%A4tte%20Bock%20mit%20euch%20zu%20arbeiten%21%20Lass%20uns%20gerne%20sprechen%21%20...">hello@flowd.de</a>
+          · 🌐 <a href="https://flowd.de" target="_blank">flowd.de</a>
+
+          ·
+          <a href="https://github.com/flowdgmbh" title="Flowd GmbH auf GitHub" class="portal-link" target="_blank">
+            <svg viewBox="0 0 16 16" class="portal-icon" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <g stroke-width="0"></g>
+              <g stroke-linecap="round" stroke-linejoin="round"></g>
+              <g>
+                <path fill="currentColor" fill-rule="evenodd"
+                      d="M8 1C4.133 1 1 4.13 1 7.993c0 3.09 2.006 5.71 4.787 6.635.35.064.478-.152.478-.337 0-.166-.006-.606-.01-1.19-1.947.423-2.357-.937-2.357-.937-.319-.808-.778-1.023-.778-1.023-.635-.434.048-.425.048-.425.703.05 1.073.72 1.073.72.624 1.07 1.638.76 2.037.582.063-.452.244-.76.444-.935-1.554-.176-3.188-.776-3.188-3.456 0-.763.273-1.388.72-1.876-.072-.177-.312-.888.07-1.85 0 0 .586-.189 1.924.716A6.711 6.711 0 018 4.381c.595.003 1.194.08 1.753.236 1.336-.905 1.923-.717 1.923-.717.382.963.142 1.674.07 1.85.448.49.72 1.114.72 1.877 0 2.686-1.638 3.278-3.197 3.45.251.216.475.643.475 1.296 0 .934-.009 1.688-.009 1.918 0 .187.127.404.482.336A6.996 6.996 0 0015 7.993 6.997 6.997 0 008 1z"
+                      clip-rule="evenodd"></path>
+              </g>
+            </svg>
+          </a>
+        </p>
+        <p class="flex-center">Ansprechpartner:
+          Sascha Egerer
+          <a href="https://www.linkedin.com/in/egerer/" title="Sascha auf LinkedIn" class="portal-link" target="_blank">
+            <svg class="portal-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" data-supported-dps="24x24"
+                 fill="currentColor" focusable="false">
+              <path
+                d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path>
+            </svg>
+          </a>
+          <a href="https://github.com/sascha-egerer" title="Sascha auf GitHub" class="portal-link" target="_blank">
+            <svg viewBox="0 0 16 16" class="portal-icon" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <g stroke-width="0"></g>
+              <g stroke-linecap="round" stroke-linejoin="round"></g>
+              <g>
+                <path fill="currentColor" fill-rule="evenodd"
+                      d="M8 1C4.133 1 1 4.13 1 7.993c0 3.09 2.006 5.71 4.787 6.635.35.064.478-.152.478-.337 0-.166-.006-.606-.01-1.19-1.947.423-2.357-.937-2.357-.937-.319-.808-.778-1.023-.778-1.023-.635-.434.048-.425.048-.425.703.05 1.073.72 1.073.72.624 1.07 1.638.76 2.037.582.063-.452.244-.76.444-.935-1.554-.176-3.188-.776-3.188-3.456 0-.763.273-1.388.72-1.876-.072-.177-.312-.888.07-1.85 0 0 .586-.189 1.924.716A6.711 6.711 0 018 4.381c.595.003 1.194.08 1.753.236 1.336-.905 1.923-.717 1.923-.717.382.963.142 1.674.07 1.85.448.49.72 1.114.72 1.877 0 2.686-1.638 3.278-3.197 3.45.251.216.475.643.475 1.296 0 .934-.009 1.688-.009 1.918 0 .187.127.404.482.336A6.996 6.996 0 0015 7.993 6.997 6.997 0 008 1z"
+                      clip-rule="evenodd"></path>
+              </g>
+            </svg>
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</article>
+
+<article class="stack-section stack-depth-2">
+  <div class="stack-inner job-section" id="job-php">
+    <h2 class="job-headline">💻 PHP Fullstack Entwickler:in (m/w/d)</h2>
+    <div class="job-content">
+      <p>Du liebst es, mit sauberem PHP-Code nachhaltige Lösungen zu bauen? Du denkst mit, entwickelst
+        eigenverantwortlich und willst dich fachlich weiterentwickeln? Dann bist du bei uns richtig!</p>
+      <h3>Was uns ausmacht:</h3>
+      <ul>
+        <li>🚫 Keine Agentur – technischer Dienstleister mit Qualitätsanspruch</li>
+        <li>🔍 Nachhaltige, saubere Softwareentwicklung statt Schnellschüsse</li>
+        <li>🤝 Langfristige Partnerschaften & technische Exzellenz</li>
+        <li>🧪 Automatisierte Deployments, Unit Tests, Acceptance Tests, Visual Regression Tests, automatisierter
+          Codestyle und statisches Code Linting sind für uns selbstverständlich
+        </li>
+        <li>🎉 Flexible Arbeitszeiten, Homeoffice-/Remote, moderne Hardware, Weiterbildung, Kaffee, Snacks und mehr</li>
+      </ul>
+      <h3>Deine Aufgaben:</h3>
+      <ul>
+        <li>🛠️ Entwicklung und Wartung von Webapplikationen auf Basis moderner PHP-Frameworks</li>
+        <li>🌐 Fullstack-Entwicklung: Du bewegst dich sicher im Backend (PHP, z.B. Symfony oder Laravel) und bringst auch
+          Frontend-Know-how (z.B. JavaScript, Vue, React) mit
+        </li>
+        <li>🔄 Aufbau und Pflege von CI/CD-Pipelines für automatisierte Tests und Deployments</li>
+        <li>🧠 Mitwirkung bei Konzeption, Architektur und Deployment</li>
+        <li>🔎 Code Reviews und Qualitätssicherung im Team</li>
+        <li>🎯 Enge Zusammenarbeit mit Frontend, Backend und Projektmanagement</li>
+      </ul>
+      <h3>Was du mitbringen solltest:</h3>
+      <ul>
+        <li>💡 Sehr gute Kenntnisse in objektorientiertem PHP</li>
+        <li>🏗️ Erfahrung mit modernen Frameworks wie Symfony oder Laravel</li>
+        <li>🌐 Erfahrung im Frontend (z.B. JavaScript, Vue, React oder vergleichbar)</li>
+        <li>⚙️ Erfahrung mit CI/CD-Tools (z.B. GitHub Actions, GitLab CI, Jenkins o.ä.)</li>
+        <li>🧩 Verständnis für moderne Softwarearchitekturen</li>
+        <li>🤗 Teamgeist und Lust auf Weiterentwicklung</li>
+      </ul>
+      <blockquote>
+        Du kannst noch nicht alles davon? Kein Problem!<br>
+        Bei uns kannst du dich gezielt weiterentwickeln.<br>
+        Mit Motivation und Neugier kommst du bei Flowd richtig weit.
+      </blockquote>
+      <div class="cta">
+        <h3>Jetzt bewerben:</h3>
+        <p>
+          📧 <a
+          href="mailto:hello@flowd.de?subject=Bewerbung%20-%20TYPO3%20Entwickler%3Ain&body=Hallo%20Sascha%2C%20ich%20h%C3%A4tte%20Bock%20mit%20euch%20zu%20arbeiten%21%20Lass%20uns%20gerne%20sprechen%21%20...">hello@flowd.de</a>
+          · 🌐 <a href="https://flowd.de" target="_blank">flowd.de</a>
+
+          ·
+          <a href="https://github.com/flowdgmbh" title="Flowd GmbH auf GitHub" class="portal-link" target="_blank">
+            <svg viewBox="0 0 16 16" class="portal-icon" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <g stroke-width="0"></g>
+              <g stroke-linecap="round" stroke-linejoin="round"></g>
+              <g>
+                <path fill="currentColor" fill-rule="evenodd"
+                      d="M8 1C4.133 1 1 4.13 1 7.993c0 3.09 2.006 5.71 4.787 6.635.35.064.478-.152.478-.337 0-.166-.006-.606-.01-1.19-1.947.423-2.357-.937-2.357-.937-.319-.808-.778-1.023-.778-1.023-.635-.434.048-.425.048-.425.703.05 1.073.72 1.073.72.624 1.07 1.638.76 2.037.582.063-.452.244-.76.444-.935-1.554-.176-3.188-.776-3.188-3.456 0-.763.273-1.388.72-1.876-.072-.177-.312-.888.07-1.85 0 0 .586-.189 1.924.716A6.711 6.711 0 018 4.381c.595.003 1.194.08 1.753.236 1.336-.905 1.923-.717 1.923-.717.382.963.142 1.674.07 1.85.448.49.72 1.114.72 1.877 0 2.686-1.638 3.278-3.197 3.45.251.216.475.643.475 1.296 0 .934-.009 1.688-.009 1.918 0 .187.127.404.482.336A6.996 6.996 0 0015 7.993 6.997 6.997 0 008 1z"
+                      clip-rule="evenodd"></path>
+              </g>
+            </svg>
+          </a>
+        </p>
+        <p class="flex-center">Ansprechpartner:
+          Sascha Egerer
+          <a href="https://www.linkedin.com/in/egerer/" title="Sascha auf LinkedIn" class="portal-link" target="_blank">
+            <svg class="portal-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" data-supported-dps="24x24"
+                 fill="currentColor" focusable="false">
+              <path
+                d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path>
+            </svg>
+          </a>
+          <a href="https://github.com/sascha-egerer" title="Sascha auf GitHub" class="portal-link" target="_blank">
+            <svg viewBox="0 0 16 16" class="portal-icon" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <g stroke-width="0"></g>
+              <g stroke-linecap="round" stroke-linejoin="round"></g>
+              <g>
+                <path fill="currentColor" fill-rule="evenodd"
+                      d="M8 1C4.133 1 1 4.13 1 7.993c0 3.09 2.006 5.71 4.787 6.635.35.064.478-.152.478-.337 0-.166-.006-.606-.01-1.19-1.947.423-2.357-.937-2.357-.937-.319-.808-.778-1.023-.778-1.023-.635-.434.048-.425.048-.425.703.05 1.073.72 1.073.72.624 1.07 1.638.76 2.037.582.063-.452.244-.76.444-.935-1.554-.176-3.188-.776-3.188-3.456 0-.763.273-1.388.72-1.876-.072-.177-.312-.888.07-1.85 0 0 .586-.189 1.924.716A6.711 6.711 0 018 4.381c.595.003 1.194.08 1.753.236 1.336-.905 1.923-.717 1.923-.717.382.963.142 1.674.07 1.85.448.49.72 1.114.72 1.877 0 2.686-1.638 3.278-3.197 3.45.251.216.475.643.475 1.296 0 .934-.009 1.688-.009 1.918 0 .187.127.404.482.336A6.996 6.996 0 0015 7.993 6.997 6.997 0 008 1z"
+                      clip-rule="evenodd"></path>
+              </g>
+            </svg>
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</article>
+
+<article class="stack-section stack-depth-2">
+  <div class="stack-inner job-section" id="job-rails">
+    <h2 class="job-headline">💎 Ruby on Rails Entwickler:in (m/w/d)</h2>
+    <div class="job-content">
+      <p>Du hast Spaß an moderner Webentwicklung mit Ruby on Rails und möchtest hochwertige, nachhaltige Software bauen?
+        Dann bist du bei uns genau richtig!</p>
+      <h3>Was uns ausmacht:</h3>
+      <ul>
+        <li>🚫 Keine Agentur – technischer Dienstleister mit Qualitätsanspruch</li>
+        <li>🔍 Nachhaltige, saubere Softwareentwicklung statt Schnellschüsse</li>
+        <li>🤝 Langfristige Partnerschaften & technische Exzellenz</li>
+        <li>🧪 Unit Tests, Acceptance Tests, Visual Regression Tests, automatisierter Codestyle und statisches Code
+          Linting sind für uns selbstverständlich
+        </li>
+        <li>🎉 Flexible Arbeitszeiten, Homeoffice-/Remote, moderne Hardware, Weiterbildung, Kaffee, Snacks und mehr</li>
+      </ul>
+      <h3>Deine Aufgaben:</h3>
+      <ul>
+        <li>💎 Entwicklung und Wartung von Webapplikationen mit Ruby on Rails</li>
+        <li>🌐 Fullstack-Entwicklung: Du fühlst dich im Backend und Frontend wohl</li>
+        <li>🔄 Aufbau und Pflege von CI/CD-Pipelines für automatisierte Tests und Deployments</li>
+        <li>🧠 Mitwirkung bei Konzeption, Architektur und Deployment</li>
+        <li>🔎 Code Reviews und Qualitätssicherung im Team</li>
+        <li>🎯 Enge Zusammenarbeit mit Frontend, Backend und Projektmanagement</li>
+      </ul>
+      <h3>Was du mitbringen solltest:</h3>
+      <ul>
+        <li>💡 Sehr gute Kenntnisse in Ruby und Ruby on Rails</li>
+        <li>🌐 Erfahrung im Frontend (z.B. JavaScript, Hotwire, Stimulus, React oder vergleichbar)</li>
+        <li>⚙️ Erfahrung mit CI/CD-Tools (z.B. GitHub Actions, GitLab CI, Jenkins o.ä.)</li>
+        <li>🧩 Verständnis für moderne Softwarearchitekturen</li>
+        <li>🤗 Teamgeist und Lust auf Weiterentwicklung</li>
+      </ul>
+      <blockquote>
+        Du kannst noch nicht alles davon? Kein Problem!<br>
+        Bei uns kannst du dich gezielt weiterentwickeln.<br>
+        Mit Motivation und Neugier kommst du bei Flowd richtig weit.
+      </blockquote>
+      <div class="cta">
+        <h3>Jetzt bewerben:</h3>
+        <p>
+          📧 <a
+          href="mailto:hello@flowd.de?subject=Bewerbung%20-%20TYPO3%20Entwickler%3Ain&body=Hallo%20Sascha%2C%20ich%20h%C3%A4tte%20Bock%20mit%20euch%20zu%20arbeiten%21%20Lass%20uns%20gerne%20sprechen%21%20...">hello@flowd.de</a>
+          · 🌐 <a href="https://flowd.de" target="_blank">flowd.de</a>
+
+          ·
+          <a href="https://github.com/flowdgmbh" title="Flowd GmbH auf GitHub" class="portal-link" target="_blank">
+            <svg viewBox="0 0 16 16" class="portal-icon" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <g stroke-width="0"></g>
+              <g stroke-linecap="round" stroke-linejoin="round"></g>
+              <g>
+                <path fill="currentColor" fill-rule="evenodd"
+                      d="M8 1C4.133 1 1 4.13 1 7.993c0 3.09 2.006 5.71 4.787 6.635.35.064.478-.152.478-.337 0-.166-.006-.606-.01-1.19-1.947.423-2.357-.937-2.357-.937-.319-.808-.778-1.023-.778-1.023-.635-.434.048-.425.048-.425.703.05 1.073.72 1.073.72.624 1.07 1.638.76 2.037.582.063-.452.244-.76.444-.935-1.554-.176-3.188-.776-3.188-3.456 0-.763.273-1.388.72-1.876-.072-.177-.312-.888.07-1.85 0 0 .586-.189 1.924.716A6.711 6.711 0 018 4.381c.595.003 1.194.08 1.753.236 1.336-.905 1.923-.717 1.923-.717.382.963.142 1.674.07 1.85.448.49.72 1.114.72 1.877 0 2.686-1.638 3.278-3.197 3.45.251.216.475.643.475 1.296 0 .934-.009 1.688-.009 1.918 0 .187.127.404.482.336A6.996 6.996 0 0015 7.993 6.997 6.997 0 008 1z"
+                      clip-rule="evenodd"></path>
+              </g>
+            </svg>
+          </a>
+        </p>
+        <p class="flex-center">Ansprechpartner:
+          Sascha Egerer
+          <a href="https://www.linkedin.com/in/egerer/" title="Sascha auf LinkedIn" class="portal-link" target="_blank">
+            <svg class="portal-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" data-supported-dps="24x24"
+                 fill="currentColor" focusable="false">
+              <path
+                d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path>
+            </svg>
+          </a>
+          <a href="https://github.com/sascha-egerer" title="Sascha auf GitHub" class="portal-link" target="_blank">
+            <svg viewBox="0 0 16 16" class="portal-icon" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <g stroke-width="0"></g>
+              <g stroke-linecap="round" stroke-linejoin="round"></g>
+              <g>
+                <path fill="currentColor" fill-rule="evenodd"
+                      d="M8 1C4.133 1 1 4.13 1 7.993c0 3.09 2.006 5.71 4.787 6.635.35.064.478-.152.478-.337 0-.166-.006-.606-.01-1.19-1.947.423-2.357-.937-2.357-.937-.319-.808-.778-1.023-.778-1.023-.635-.434.048-.425.048-.425.703.05 1.073.72 1.073.72.624 1.07 1.638.76 2.037.582.063-.452.244-.76.444-.935-1.554-.176-3.188-.776-3.188-3.456 0-.763.273-1.388.72-1.876-.072-.177-.312-.888.07-1.85 0 0 .586-.189 1.924.716A6.711 6.711 0 018 4.381c.595.003 1.194.08 1.753.236 1.336-.905 1.923-.717 1.923-.717.382.963.142 1.674.07 1.85.448.49.72 1.114.72 1.877 0 2.686-1.638 3.278-3.197 3.45.251.216.475.643.475 1.296 0 .934-.009 1.688-.009 1.918 0 .187.127.404.482.336A6.996 6.996 0 0015 7.993 6.997 6.997 0 008 1z"
+                      clip-rule="evenodd"></path>
+              </g>
+            </svg>
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</article>
+
+<!-- COMING SOON! -->
+<template class="stack-section stack-depth-2">
+  <div class="stack-inner job-section" id="job-pm">
+    <h2 class="job-headline">🗂️ Technische:r Projektmanager:in (m/w/d)</h2>
+    <div class="job-content">
+      <p>Du behältst gerne den Überblick, verstehst technische Zusammenhänge und kannst mit Kunden wie Entwickler:innen
+        gut kommunizieren? Dann werde Teil unseres Teams!</p>
+      <h3>Was uns ausmacht:</h3>
+      <ul>
+        <li>🚫 Keine Agentur – technischer Dienstleister mit Qualitätsanspruch</li>
+        <li>🔍 Nachhaltige, saubere Softwareentwicklung statt Schnellschüsse</li>
+        <li>🤝 Langfristige Partnerschaften & technische Exzellenz</li>
+        <li>🧪 Unit Tests, Acceptance Tests, Visual Regression Tests, automatisierter Codestyle und statisches Code
+          Linting sind für uns selbstverständlich
+        </li>
+        <li>🧘‍♂️ Lockeres, kollegiales Arbeitsumfeld mit viel Eigenverantwortung</li>
+        <li>🎉 Flexible Arbeitszeiten, Homeoffice-/Remote, moderne Hardware, Weiterbildung, Kaffee, Snacks und mehr</li>
+      </ul>
+      <h3>Deine Aufgaben:</h3>
+      <ul>
+        <li>📅 Planung und Steuerung von Digitalprojekten</li>
+        <li>💬 Kommunikation mit Kund:innen, Entwicklungsteams und Stakeholdern</li>
+        <li>✅ Qualitätssicherung und Projektcontrolling</li>
+        <li>🛠️ Mitgestaltung von Prozessen und Arbeitsmethoden</li>
+      </ul>
+      <h3>Was du mitbringen solltest:</h3>
+      <ul>
+        <li>📋 Erfahrung im Projektmanagement (klassisch oder agil)</li>
+        <li>💡 Technisches Verständnis (idealerweise Webentwicklung)</li>
+        <li>🗣️ Kommunikationsstärke und Organisationstalent</li>
+        <li>🚀 Eigeninitiative, Verlässlichkeit und Teamgeist</li>
+      </ul>
+      <p><strong>Diese Stelle ist in Vollzeit oder Teilzeit möglich.</strong></p>
+      <blockquote>
+        Du denkst dir, dir fehlt noch eine der Fähigkeiten? Dann bringen wir es dir bei!<br>
+        Bei uns zählt deine Motivation, dich in technische Themen und moderne Projektarbeit einzuarbeiten.<br>
+        Wir unterstützen dich beim Einstieg und deiner Weiterentwicklung.<br>
+        <strong>Du bist dir noch nicht sicher? Dann lass uns reden!</strong>
+      </blockquote>
+      <div class="cta">
+        <h3>Jetzt bewerben:</h3>
+        <p>
+          📧 <a
+          href="mailto:hello@flowd.de?subject=Bewerbung%20-%20TYPO3%20Entwickler%3Ain&body=Hallo%20Sascha%2C%20ich%20h%C3%A4tte%20Bock%20mit%20euch%20zu%20arbeiten%21%20Lass%20uns%20gerne%20sprechen%21%20...">hello@flowd.de</a>
+          · 🌐 <a href="https://flowd.de" target="_blank">flowd.de</a>
+
+          ·
+          <a href="https://github.com/flowdgmbh" title="Flowd GmbH auf GitHub" class="portal-link" target="_blank">
+            <svg viewBox="0 0 16 16" class="portal-icon" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <g stroke-width="0"></g>
+              <g stroke-linecap="round" stroke-linejoin="round"></g>
+              <g>
+                <path fill="currentColor" fill-rule="evenodd"
+                      d="M8 1C4.133 1 1 4.13 1 7.993c0 3.09 2.006 5.71 4.787 6.635.35.064.478-.152.478-.337 0-.166-.006-.606-.01-1.19-1.947.423-2.357-.937-2.357-.937-.319-.808-.778-1.023-.778-1.023-.635-.434.048-.425.048-.425.703.05 1.073.72 1.073.72.624 1.07 1.638.76 2.037.582.063-.452.244-.76.444-.935-1.554-.176-3.188-.776-3.188-3.456 0-.763.273-1.388.72-1.876-.072-.177-.312-.888.07-1.85 0 0 .586-.189 1.924.716A6.711 6.711 0 018 4.381c.595.003 1.194.08 1.753.236 1.336-.905 1.923-.717 1.923-.717.382.963.142 1.674.07 1.85.448.49.72 1.114.72 1.877 0 2.686-1.638 3.278-3.197 3.45.251.216.475.643.475 1.296 0 .934-.009 1.688-.009 1.918 0 .187.127.404.482.336A6.996 6.996 0 0015 7.993 6.997 6.997 0 008 1z"
+                      clip-rule="evenodd"></path>
+              </g>
+            </svg>
+          </a>
+        </p>
+        <p class="flex-center">Ansprechpartner:
+          Sascha Egerer
+          <a href="https://www.linkedin.com/in/egerer/" title="Sascha auf LinkedIn" class="portal-link" target="_blank">
+            <svg class="portal-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" data-supported-dps="24x24"
+                 fill="currentColor" focusable="false">
+              <path
+                d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path>
+            </svg>
+          </a>
+          <a href="https://github.com/sascha-egerer" title="Sascha auf GitHub" class="portal-link" target="_blank">
+            <svg viewBox="0 0 16 16" class="portal-icon" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <g stroke-width="0"></g>
+              <g stroke-linecap="round" stroke-linejoin="round"></g>
+              <g>
+                <path fill="currentColor" fill-rule="evenodd"
+                      d="M8 1C4.133 1 1 4.13 1 7.993c0 3.09 2.006 5.71 4.787 6.635.35.064.478-.152.478-.337 0-.166-.006-.606-.01-1.19-1.947.423-2.357-.937-2.357-.937-.319-.808-.778-1.023-.778-1.023-.635-.434.048-.425.048-.425.703.05 1.073.72 1.073.72.624 1.07 1.638.76 2.037.582.063-.452.244-.76.444-.935-1.554-.176-3.188-.776-3.188-3.456 0-.763.273-1.388.72-1.876-.072-.177-.312-.888.07-1.85 0 0 .586-.189 1.924.716A6.711 6.711 0 018 4.381c.595.003 1.194.08 1.753.236 1.336-.905 1.923-.717 1.923-.717.382.963.142 1.674.07 1.85.448.49.72 1.114.72 1.877 0 2.686-1.638 3.278-3.197 3.45.251.216.475.643.475 1.296 0 .934-.009 1.688-.009 1.918 0 .187.127.404.482.336A6.996 6.996 0 0015 7.993 6.997 6.997 0 008 1z"
+                      clip-rule="evenodd"></path>
+              </g>
+            </svg>
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</template>
+
+<div class="stack-section stack-depth-3">
+  <div class="stack-inner">
+    <footer>
+      © 2025 Flowd GmbH · Wir freuen uns auf deine Bewerbung.
+      <div style="margin-top:2.5rem; font-size:0.97rem; color:#aaa; line-height:1.7;">
+        <strong>Flowd GmbH</strong><br>
+        Robert-Bosch-Straße 32<br>
+        63303 Dreieich<br>
+        <br>
+        Geschäftsführer: Sascha Egerer, Felix Tscheulin<br>
+        <br>
+        HRB 51045, Amtsgericht Offenbach<br>
+        USt-IdNr.: DE319360421
+      </div>
+    </footer>
+  </div>
+</div>
+</body>
+</html>
